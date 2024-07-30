@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
-import { usePlaces, PlacesContextValue } from "@/context/AppProvider";
+import { usePlaces } from "@/context/AppProvider";
 
 const Groceries = () => {
-  const { places, loading, error }: PlacesContextValue = usePlaces();
+  const { groceries, error, isLoading } = usePlaces();
 
-  if (loading) {
+  if (isLoading) {
     return <Text>Loading groceries...</Text>;
   }
 
@@ -16,12 +16,12 @@ const Groceries = () => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={places.groceries}
-        keyExtractor={(item) => item.place_id}
+        data={groceries}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.item}>
             <Text style={styles.title}>{item.name}</Text>
-            <Text>{item.vicinity}</Text>
+            <Text>{item.address}</Text>
           </View>
         )}
       />

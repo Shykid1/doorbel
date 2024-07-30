@@ -8,7 +8,7 @@ import Colors from "@/constants/Colors";
 const Page = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={{ paddingVertical: 40 }}>
         <Categories />
         <Text style={styles.header}>Top picks in your neighbourhood</Text>
         <Restaurants />

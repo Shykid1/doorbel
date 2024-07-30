@@ -10,17 +10,7 @@ import {
 import { Link } from "expo-router";
 import Colors from "../constants/Colors";
 import { usePlaces } from "@/context/AppProvider";
-
-interface Restaurant {
-  place_id: string;
-  name: string;
-  rating?: number;
-  user_ratings_total?: number;
-  vicinity?: string;
-  photos?: Array<{
-    photo_reference?: string;
-  }>;
-}
+import { FontAwesome, FontAwesome6 } from "@expo/vector-icons";
 
 const Restaurants = () => {
   const { restaurants } = usePlaces();
@@ -37,20 +27,21 @@ const Restaurants = () => {
         <Link
           href={{
             pathname: "/details/[id]",
-            params: { id: restaurant.place_id },
+            params: { id: restaurant.id },
           }}
-          key={restaurant.place_id}
+          key={restaurant.id}
           asChild
         >
           <TouchableOpacity>
             <View style={styles.categoryCard}>
-              {restaurant.photos && restaurant.photos.length > 0 ? (
-                <Image
-                  source={{
-                    uri: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${restaurant.photos[0].photo_reference}&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}`,
-                  }}
-                  style={styles.image}
-                />
+              {restaurant.photoUrl && restaurant.photoUrl.length > 0 ? (
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{ uri: restaurant.photoUrl }}
+                    style={styles.image}
+                  />
+                  <Text style={styles.deliveryText}>30 minutes delivery</Text>
+                </View>
               ) : (
                 <View style={[styles.image, styles.placeholderImage]}>
                   <Text>No image available</Text>
@@ -59,9 +50,28 @@ const Restaurants = () => {
               <View style={styles.categoryBox}>
                 <Text style={styles.categoryText}>{restaurant.name}</Text>
                 <Text style={styles.ratingText}>
-                  {restaurant.rating} ({restaurant.user_ratings_total})
+                  <FontAwesome name="star" size={15} color="gold" />
+                  {restaurant.rating} ({restaurant.userRatingsTotal})
                 </Text>
-                <Text style={styles.vicinityText}>{restaurant.vicinity}</Text>
+                <Text style={styles.vicinityText}>
+                  <FontAwesome6 name="location-dot" size={15} color="black" />
+                  {` ${restaurant.address}`}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: "semibold",
+                    color: "grey",
+                  }}
+                >
+                  Fried Rice • Plain Rice • Banku • More
+                </Text>
+                <Text
+                  style={{ fontSize: 13, fontWeight: "bold", color: "grey" }}
+                >
+                  Meals from <Text style={{ color: "green" }}>GHC 15</Text> to{" "}
+                  <Text style={{ color: "green" }}>GHC 50</Text>
+                </Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -74,7 +84,7 @@ const Restaurants = () => {
 const styles = StyleSheet.create({
   categoryCard: {
     width: 300,
-    height: 260,
+    height: 350,
     backgroundColor: "#fff",
     marginEnd: 10,
     elevation: 2,
@@ -85,16 +95,34 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.06,
     borderRadius: 4,
+    display: "flex",
   },
   categoryText: {
     fontSize: 15,
     fontWeight: "bold",
     marginBottom: 2,
   },
+  imageContainer: {
+    flex: 2,
+    position: "relative",
+  },
   image: {
-    flex: 5,
-    width: undefined,
-    height: undefined,
+    flex: 1,
+    width: "100%",
+    height: "50%",
+    borderRadius: 4,
+    objectFit: "cover",
+  },
+  deliveryText: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    padding: 5,
+    borderRadius: 5,
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "black",
   },
   placeholderImage: {
     backgroundColor: Colors.lightGrey,
@@ -104,14 +132,16 @@ const styles = StyleSheet.create({
   categoryBox: {
     flex: 2,
     padding: 10,
-    height: 40,
+    height: 50,
     marginTop: 0,
-    marginBottom: 30,
+    // marginBottom: 90,
+    gap: 5,
   },
   ratingText: {
     color: Colors.green,
     fontSize: 14,
-    marginBottom: 2,
+    marginVertical: 4,
+    letterSpacing: 2,
   },
   vicinityText: {
     color: Colors.medium,
@@ -119,54 +149,5 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
 });
-
-// const styles = StyleSheet.create({
-//   categoryCard: {
-//     width: 300,
-//     height: 250,
-//     backgroundColor: "#fff",
-//     marginEnd: 10,
-//     elevation: 2,
-//     shadowColor: "#000",
-//     shadowOffset: {
-//       width: 0,
-//       height: 4,
-//     },
-//     shadowOpacity: 0.06,
-//     borderRadius: 4,
-//   },
-//   categoryText: {
-//     paddingVertical: 5,
-//     fontSize: 14,
-//     fontWeight: "bold",
-//   },
-//   image: {
-//     flex: 5,
-//     width: undefined,
-//     height: undefined,
-//   },
-//   placeholderImage: {
-//     backgroundColor: Colors.lightGrey,
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-
-//   categoryBox: {
-//     flex: 2,
-//     padding: 10,
-//     height: 20,
-//     marginTop: 0,
-//   },
-//   ratingText: {
-//     color: Colors.green,
-//     fontSize: 14,
-//     marginBottom: 2,
-//   },
-//   vicinityText: {
-//     color: Colors.medium,
-//     fontSize: 12,
-//     marginBottom: 2,
-//   },
-// });
 
 export default Restaurants;

@@ -27,7 +27,7 @@ const RestaurantDetails = () => {
   const navigation = useNavigation();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const restaurant = restaurants.find((r) => r.place_id === id);
+  const restaurant = restaurants.find((r) => r.id === id);
 
   const opacity = useSharedValue(0);
   const animatedStyles = useAnimatedStyle(() => ({
@@ -124,9 +124,7 @@ const RestaurantDetails = () => {
         stickyHeaderHeight={100}
         renderBackground={() => (
           <Image
-            source={{
-              uri: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${restaurant.photos?.[0]?.photo_reference}&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}`,
-            }}
+            source={{ uri: restaurant.photoUrl ?? "" }}
             style={{ height: 300, width: "100%" }}
           />
         )}
@@ -140,12 +138,9 @@ const RestaurantDetails = () => {
         <View style={styles.detailsContainer}>
           <Text style={styles.restaurantName}>{restaurant.name}</Text>
           <Text style={styles.restaurantDescription}>
-            Rating: {restaurant.rating} ({restaurant.user_ratings_total}{" "}
-            reviews)
+            Rating: {restaurant.rating} ({restaurant.userRatingsTotal} reviews)
           </Text>
-          <Text style={styles.restaurantDescription}>
-            {restaurant.vicinity}
-          </Text>
+          <Text style={styles.restaurantDescription}>{restaurant.address}</Text>
           <SectionList
             contentContainerStyle={{ paddingBottom: 50 }}
             keyExtractor={(item, index) => `${item.id + index}`}

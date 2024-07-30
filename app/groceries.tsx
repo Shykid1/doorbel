@@ -1,16 +1,16 @@
 import React from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
-import { usePlaces } from "@/context/AppProvider";
+import { usePlaces, PlacesContextValue } from "@/context/AppProvider";
 
 const Groceries = () => {
-  const { places, loading, error } = usePlaces();
+  const { places, loading, error }: PlacesContextValue = usePlaces();
 
   if (loading) {
     return <Text>Loading groceries...</Text>;
   }
 
   if (error) {
-    return <Text>Error: {error}</Text>;
+    return <Text>Error: {error.toString()}</Text>;
   }
 
   return (

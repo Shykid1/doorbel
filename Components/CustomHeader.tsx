@@ -60,7 +60,7 @@ const CustomHeader = () => {
         <TouchableOpacity style={styles.titleContainer} onPress={openModal}>
           <Text style={styles.title}>Delivery · Now</Text>
           <View style={styles.locationName}>
-            <Text style={styles.subtitle}>London</Text>
+            <Text style={styles.subtitle}>Tamale</Text>
             <Ionicons name="chevron-down" size={20} color={Colors.primary} />
           </View>
         </TouchableOpacity>

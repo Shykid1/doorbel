@@ -1,117 +1,50 @@
-import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-} from "react-native";
-import { Link } from "expo-router";
-import Colors from "../constants/Colors";
+// restaurants.tsx
+import React from "react";
+import { ScrollView, StyleSheet } from "react-native";
 import { usePlaces } from "@/context/AppProvider";
+import PlaceCard from "@/Components/PlaceCard";
 
-interface Restaurant {
-  place_id: string;
-  name: string;
-  rating?: number;
-  user_ratings_total?: number;
-  vicinity?: string;
-  photos?: Array<{
-    photo_reference?: string;
-  }>;
-}
-
-// Define the structure of the places state
-interface PlacesState {
-  restaurants: Restaurant[];
-  // Add other place types if needed
-}
-
-// Define the structure of the context value
-interface PlacesContextValue {
-  places: PlacesState;
-  loading: boolean;
-  error: string | null;
-}
+const images = [
+  "https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+  "https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+  "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg?auto=compress&cs=tinysrgb&w=600",
+  "https://images.pexels.com/photos/1199957/pexels-photo-1199957.jpeg?auto=compress&cs=tinysrgb&w=600",
+  "https://images.pexels.com/photos/262959/pexels-photo-262959.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+  "https://images.pexels.com/photos/2097090/pexels-photo-2097090.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+  "https://images.pexels.com/photos/323682/pexels-photo-323682.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+  "https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+  "https://images.pexels.com/photos/1211887/pexels-photo-1211887.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+  "https://images.pexels.com/photos/1603901/pexels-photo-1603901.jpeg?auto=compress&cs=tinysrgb&w=600",
+  "https://images.pexels.com/photos/3186654/pexels-photo-3186654.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+  "https://images.pexels.com/photos/803963/pexels-photo-803963.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+];
 
 const Restaurants = () => {
   const { restaurants } = usePlaces();
 
   return (
     <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{
-        padding: 15,
-      }}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.container}
     >
-      {restaurants.map((restaurant, index) => (
-        <Link href={"/details"} key={restaurant.place_id} asChild>
-          <TouchableOpacity>
-            <View style={styles.categoryCard}>
-              {restaurant.photos && restaurant.photos.length > 0 ? (
-                <Image
-                  source={{
-                    uri: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${restaurant.photos[0].photo_reference}&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}`,
-                  }}
-                  style={styles.image}
-                />
-              ) : (
-                <View style={[styles.image, styles.placeholderImage]}>
-                  <Text>No image available</Text>
-                </View>
-              )}
-              <View style={styles.categoryBox}>
-                <Text style={styles.categoryText}>{restaurant.name}</Text>
-                <Text style={{ color: Colors.green }}>
-                  {restaurant.rating} ({restaurant.user_ratings_total})
-                </Text>
-                <Text style={{ color: Colors.medium }}>
-                  {restaurant.vicinity}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        </Link>
+      {restaurants.map((restaurant) => (
+        <PlaceCard
+          key={restaurant.id}
+          place={restaurant}
+          type="restaurant"
+          images={images}
+        />
       ))}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  categoryCard: {
-    width: 300,
-    height: 250,
-    backgroundColor: "#fff",
-    marginEnd: 10,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.06,
-    borderRadius: 4,
-  },
-  categoryText: {
-    paddingVertical: 5,
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  image: {
-    flex: 5,
-    width: undefined,
-    height: undefined,
-  },
-  placeholderImage: {
-    backgroundColor: Colors.lightGrey,
-    justifyContent: "center",
+  container: {
+    padding: 15,
+    alignContent: "center",
     alignItems: "center",
-  },
-  categoryBox: {
-    flex: 2,
-    padding: 10,
+    gap: 20,
   },
 });
 

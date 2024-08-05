@@ -1,54 +1,3 @@
-// import { createContext, useContext, useState, useEffect } from "react";
-// import axios from "axios";
-
-// interface PlacesContextValue {
-//   restaurants: any[];
-//   isLoading: boolean;
-//   error: Error | null;
-// }
-
-// const AppContext = createContext<PlacesContextValue | undefined>(undefined);
-
-// export const PlacesProvider = ({ children }: { children: React.ReactNode }) => {
-//   const [restaurants, setRestaurants] = useState<any[]>([]);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [error, setError] = useState<Error | null>(null);
-
-//   useEffect(() => {
-//     const fetchRestaurants = async () => {
-//       try {
-//         const response = await axios.get(
-//           `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=9.432919,-0.848452&radius=1500&type=restaurant&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}`
-//         );
-//         setRestaurants(response.data.results);
-//       } catch (error) {
-//         console.error(error);
-//         setError(
-//           error instanceof Error ? error : new Error("An error occurred")
-//         );
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-
-//     fetchRestaurants();
-//   }, []); // Empty dependency array ensures this effect runs only once on mount
-
-//   return (
-//     <AppContext.Provider value={{ restaurants, isLoading, error }}>
-//       {children}
-//     </AppContext.Provider>
-//   );
-// };
-
-// export const usePlaces = () => {
-//   const context = useContext(AppContext);
-//   if (!context) {
-//     throw new Error("usePlaces must be used within a PlacesProvider");
-//   }
-//   return context;
-// };
-
 // import React, {
 //   createContext,
 //   useContext,
@@ -58,20 +7,36 @@
 // } from "react";
 // import { Alert } from "react-native";
 // import axios from "axios";
+// import * as Location from "expo-location";
 
-// // Define the structure of a place
-// interface Place {
-//   place_id: string;
-//   name: string;
-//   rating?: number;
-//   user_ratings_total?: number;
-//   vicinity?: string;
-//   photos?: Array<{
-//     photo_reference?: string;
-//   }>;
+// // Type definitions
+
+// interface Coordinates {
+//   latitude: number;
+//   longitude: number;
 // }
 
-// // Define the structure of the context
+// interface Address {
+//   formatted_address: string;
+//   city: string;
+//   country: string;
+// }
+
+// interface openingHours {
+//   open_now: boolean;
+//   weekday_text: string[];
+// }
+
+// interface Place {
+//   id: string;
+//   name: string;
+//   address: string;
+//   photoUrl: string | null;
+//   rating: number;
+//   userRatingsTotal: number;
+//   openingHours: openingHours | null;
+// }
+
 // interface PlacesContextType {
 //   restaurants: Place[];
 //   groceries: Place[];
@@ -79,15 +44,18 @@
 //   pharmacies: Place[];
 //   isLoading: boolean;
 //   error: string | null;
-//   refreshData: () => void;
+//   refreshData: () => Promise<void>;
+//   currentLocation: Coordinates | null;
+//   currentAddress: Address | null;
 // }
 
 // // Create the context
 // const PlacesContext = createContext<PlacesContextType | undefined>(undefined);
 
-// // API key and base URL
-// const API_KEY = "YOUR_GOOGLE_PLACES_API_KEY";
-// const BASE_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
+// // API configuration
+// const API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
+// const BASE_URL = "https://maps.googleapis.com/maps/api/place";
+// const GEOCODING_URL = "https://maps.googleapis.com/maps/api/geocode/json";
 
 // // Provider component
 // export const PlacesProvider: React.FC<{ children: ReactNode }> = ({
@@ -99,13 +67,28 @@
 //   const [pharmacies, setPharmacies] = useState<Place[]>([]);
 //   const [isLoading, setIsLoading] = useState(false);
 //   const [error, setError] = useState<string | null>(null);
+//   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
+//     null
+//   );
+//   const [currentAddress, setCurrentAddress] = useState<Address | null>(null);
 
-//   const fetchPlaces = async (type: string) => {
+//   const getPhotoUrl = (
+//     photoReference: string,
+//     maxWidth: number = 400
+//   ): string => {
+//     return `${BASE_URL}/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${API_KEY}`;
+//   };
+
+//   const fetchPlaces = async (type: string): Promise<Place[]> => {
+//     if (!currentLocation) {
+//       throw new Error("Current location not available");
+//     }
+
 //     try {
-//       const { data } = await axios.get(`${BASE_URL}`, {
+//       const { data } = await axios.get(`${BASE_URL}/nearbysearch/json`, {
 //         params: {
-//           location: "37.7749,-122.4194", // Example: San Francisco coordinates
-//           radius: 1500, // 1.5km radius
+//           location: `${currentLocation.latitude},${currentLocation.longitude}`,
+//           radius: 35000, // 35km radius
 //           type,
 //           key: API_KEY,
 //         },
@@ -115,9 +98,15 @@
 //         id: place.place_id,
 //         name: place.name,
 //         address: place.vicinity,
-//         // Map other properties as needed
+//         photoUrl:
+//           place.photos && place.photos.length > 0
+//             ? getPhotoUrl(place.photos[0].photo_reference)
+//             : null,
+//         rating: place.rating || 0,
+//         userRatingsTotal: place.user_ratings_total || 0,
 //       }));
 //     } catch (error) {
+//       console.error(`Error fetching ${type}:`, error);
 //       throw new Error(`Error fetching ${type}`);
 //     }
 //   };
@@ -134,7 +123,7 @@
 //         fetchedPharmacies,
 //       ] = await Promise.all([
 //         fetchPlaces("restaurant"),
-//         fetchPlaces("grocery_or_supermarket"),
+//         fetchPlaces("grocery"),
 //         fetchPlaces("supermarket"),
 //         fetchPlaces("pharmacy"),
 //       ]);
@@ -151,15 +140,78 @@
 //     }
 //   };
 
-//   useEffect(() => {
-//     fetchAllPlaces();
-//   }, []);
-
-//   const refreshData = () => {
-//     fetchAllPlaces();
+//   const getLocationPermission = async () => {
+//     let { status } = await Location.requestForegroundPermissionsAsync();
+//     if (status !== "granted") {
+//       setError("Permission to access location was denied");
+//       return false;
+//     }
+//     return true;
 //   };
 
-//   const value = {
+//   const getCurrentLocation = async () => {
+//     const hasPermission = await getLocationPermission();
+//     if (!hasPermission) return;
+
+//     try {
+//       const location = await Location.getCurrentPositionAsync({});
+//       setCurrentLocation({
+//         latitude: location.coords.latitude,
+//         longitude: location.coords.longitude,
+//       });
+//       await reverseGeocode(location.coords.latitude, location.coords.longitude);
+//     } catch (error) {
+//       console.error("Error getting current location:", error);
+//       setError("Failed to get current location");
+//     }
+//   };
+
+//   const reverseGeocode = async (latitude: number, longitude: number) => {
+//     try {
+//       const response = await axios.get(GEOCODING_URL, {
+//         params: {
+//           latlng: `${latitude},${longitude}`,
+//           key: API_KEY,
+//         },
+//       });
+
+//       if (response.data.results.length > 0) {
+//         const result = response.data.results[0];
+//         const city = result.address_components.find((component: any) =>
+//           component.types.includes("locality")
+//         )?.long_name;
+//         const country = result.address_components.find((component: any) =>
+//           component.types.includes("country")
+//         )?.long_name;
+
+//         setCurrentAddress({
+//           formatted_address: result.formatted_address,
+//           city: city || "",
+//           country: country || "",
+//         });
+//       }
+//     } catch (error) {
+//       console.error("Error in reverse geocoding:", error);
+//       setError("Failed to get address from coordinates");
+//     }
+//   };
+
+//   useEffect(() => {
+//     getCurrentLocation();
+//   }, []);
+
+//   useEffect(() => {
+//     if (currentLocation) {
+//       fetchAllPlaces();
+//     }
+//   }, [currentLocation]);
+
+//   const refreshData = async () => {
+//     await getCurrentLocation();
+//     await fetchAllPlaces();
+//   };
+
+//   const value: PlacesContextType = {
 //     restaurants,
 //     groceries,
 //     supermarkets,
@@ -167,6 +219,8 @@
 //     isLoading,
 //     error,
 //     refreshData,
+//     currentLocation,
+//     currentAddress,
 //   };
 
 //   return (
@@ -175,7 +229,7 @@
 // };
 
 // // Custom hook to use the context
-// export const usePlaces = () => {
+// export const usePlaces = (): PlacesContextType => {
 //   const context = useContext(PlacesContext);
 //   if (context === undefined) {
 //     throw new Error("usePlaces must be used within a PlacesProvider");
@@ -183,7 +237,8 @@
 //   return context;
 // };
 
-// PlacesContext.tsx
+// AppProvider.tsx
+
 import React, {
   createContext,
   useContext,
@@ -193,13 +248,25 @@ import React, {
 } from "react";
 import { Alert } from "react-native";
 import axios from "axios";
+import * as Location from "expo-location";
 
 // Type definitions
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+interface Address {
+  formatted_address: string;
+  city: string;
+  country: string;
+}
 
 interface openingHours {
   open_now: boolean;
   weekday_text: string[];
 }
+
 interface Place {
   id: string;
   name: string;
@@ -218,6 +285,11 @@ interface PlacesContextType {
   isLoading: boolean;
   error: string | null;
   refreshData: () => Promise<void>;
+  currentLocation: Coordinates | null;
+  currentAddress: Address | null;
+  isLocationLoading: boolean;
+  locationError: string | null;
+  refreshLocation: () => Promise<void>;
 }
 
 // Create the context
@@ -226,6 +298,7 @@ const PlacesContext = createContext<PlacesContextType | undefined>(undefined);
 // API configuration
 const API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 const BASE_URL = "https://maps.googleapis.com/maps/api/place";
+const GEOCODING_URL = "https://maps.googleapis.com/maps/api/geocode/json";
 
 // Provider component
 export const PlacesProvider: React.FC<{ children: ReactNode }> = ({
@@ -237,6 +310,12 @@ export const PlacesProvider: React.FC<{ children: ReactNode }> = ({
   const [pharmacies, setPharmacies] = useState<Place[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
+    null
+  );
+  const [currentAddress, setCurrentAddress] = useState<Address | null>(null);
+  const [isLocationLoading, setIsLocationLoading] = useState(true);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   const getPhotoUrl = (
     photoReference: string,
@@ -246,11 +325,15 @@ export const PlacesProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const fetchPlaces = async (type: string): Promise<Place[]> => {
+    if (!currentLocation) {
+      throw new Error("Current location not available");
+    }
+
     try {
       const { data } = await axios.get(`${BASE_URL}/nearbysearch/json`, {
         params: {
-          location: "9.432919,-0.848452", // Example: Tamale coordinates
-          radius: 1500, // 1.5km radius
+          location: `${currentLocation.latitude},${currentLocation.longitude}`,
+          radius: 35000, // 35km radius
           type,
           key: API_KEY,
         },
@@ -266,6 +349,7 @@ export const PlacesProvider: React.FC<{ children: ReactNode }> = ({
             : null,
         rating: place.rating || 0,
         userRatingsTotal: place.user_ratings_total || 0,
+        openingHours: place.opening_hours || null,
       }));
     } catch (error) {
       console.error(`Error fetching ${type}:`, error);
@@ -285,7 +369,7 @@ export const PlacesProvider: React.FC<{ children: ReactNode }> = ({
         fetchedPharmacies,
       ] = await Promise.all([
         fetchPlaces("restaurant"),
-        fetchPlaces("grocery_or_supermarket"),
+        fetchPlaces("grocery"),
         fetchPlaces("supermarket"),
         fetchPlaces("pharmacy"),
       ]);
@@ -302,12 +386,87 @@ export const PlacesProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const getLocationPermission = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      setLocationError("Permission to access location was denied");
+      return false;
+    }
+    return true;
+  };
+
+  const getCurrentLocation = async () => {
+    setIsLocationLoading(true);
+    setLocationError(null);
+
+    const hasPermission = await getLocationPermission();
+    if (!hasPermission) {
+      setIsLocationLoading(false);
+      return;
+    }
+
+    try {
+      const location = await Location.getCurrentPositionAsync({});
+      setCurrentLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+      await reverseGeocode(location.coords.latitude, location.coords.longitude);
+    } catch (error) {
+      console.error("Error getting current location:", error);
+      setLocationError("Failed to get current location");
+    } finally {
+      setIsLocationLoading(false);
+    }
+  };
+
+  const reverseGeocode = async (latitude: number, longitude: number) => {
+    try {
+      const response = await axios.get(GEOCODING_URL, {
+        params: {
+          latlng: `${latitude},${longitude}`,
+          key: API_KEY,
+        },
+      });
+
+      if (response.data.results.length > 0) {
+        const result = response.data.results[0];
+        const city = result.address_components.find((component: any) =>
+          component.types.includes("locality")
+        )?.long_name;
+        const country = result.address_components.find((component: any) =>
+          component.types.includes("country")
+        )?.long_name;
+
+        setCurrentAddress({
+          formatted_address: result.formatted_address,
+          city: city || "",
+          country: country || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error in reverse geocoding:", error);
+      setError("Failed to get address from coordinates");
+    }
+  };
+
   useEffect(() => {
-    fetchAllPlaces();
+    getCurrentLocation();
   }, []);
 
+  useEffect(() => {
+    if (currentLocation) {
+      fetchAllPlaces();
+    }
+  }, [currentLocation]);
+
   const refreshData = async () => {
+    await getCurrentLocation();
     await fetchAllPlaces();
+  };
+
+  const refreshLocation = async () => {
+    await getCurrentLocation();
   };
 
   const value: PlacesContextType = {
@@ -318,6 +477,11 @@ export const PlacesProvider: React.FC<{ children: ReactNode }> = ({
     isLoading,
     error,
     refreshData,
+    currentLocation,
+    currentAddress,
+    isLocationLoading,
+    locationError,
+    refreshLocation,
   };
 
   return (
@@ -333,125 +497,3 @@ export const usePlaces = (): PlacesContextType => {
   }
   return context;
 };
-
-// // Sample usage component
-// // PlacesList.tsx
-// import React from 'react';
-// import { View, Text, Image, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-// import { usePlaces } from './PlacesContext';
-
-// const PlacesList: React.FC = () => {
-//   const { restaurants, groceries, supermarkets, pharmacies, isLoading, error, refreshData } = usePlaces();
-
-//   if (isLoading) {
-//     return <ActivityIndicator size="large" color="#0000ff" />;
-//   }
-
-//   if (error) {
-//     return (
-//       <View style={styles.errorContainer}>
-//         <Text style={styles.errorText}>{error}</Text>
-//         <TouchableOpacity onPress={refreshData} style={styles.retryButton}>
-//           <Text style={styles.retryButtonText}>Retry</Text>
-//         </TouchableOpacity>
-//       </View>
-//     );
-//   }
-
-//   const renderItem = ({ item }: { item: Place }) => (
-//     <View style={styles.itemContainer}>
-//       {item.photoUrl && (
-//         <Image source={{ uri: item.photoUrl }} style={styles.image} />
-//       )}
-//       <View style={styles.infoContainer}>
-//         <Text style={styles.name}>{item.name}</Text>
-//         <Text style={styles.address}>{item.address}</Text>
-//         <Text style={styles.rating}>Rating: {item.rating} ({item.userRatingsTotal} reviews)</Text>
-//       </View>
-//     </View>
-//   );
-
-//   return (
-//     <View style={styles.container}>
-//       <FlatList
-//         data={[...restaurants, ...groceries, ...supermarkets, ...pharmacies]}
-//         renderItem={renderItem}
-//         keyExtractor={(item) => item.id}
-//         refreshing={isLoading}
-//         onRefresh={refreshData}
-//       />
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//   },
-//   itemContainer: {
-//     flexDirection: 'row',
-//     padding: 10,
-//     borderBottomWidth: 1,
-//     borderBottomColor: '#ccc',
-//   },
-//   image: {
-//     width: 80,
-//     height: 80,
-//     borderRadius: 5,
-//   },
-//   infoContainer: {
-//     flex: 1,
-//     marginLeft: 10,
-//   },
-//   name: {
-//     fontSize: 16,
-//     fontWeight: 'bold',
-//   },
-//   address: {
-//     fontSize: 14,
-//     color: '#666',
-//   },
-//   rating: {
-//     fontSize: 12,
-//     color: '#888',
-//   },
-//   errorContainer: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   errorText: {
-//     fontSize: 16,
-//     color: 'red',
-//     marginBottom: 10,
-//   },
-//   retryButton: {
-//     backgroundColor: '#007AFF',
-//     padding: 10,
-//     borderRadius: 5,
-//   },
-//   retryButtonText: {
-//     color: 'white',
-//     fontSize: 16,
-//   },
-// });
-
-// export default PlacesList;
-
-// // App.tsx
-// import React from 'react';
-// import { SafeAreaView } from 'react-native';
-// import { PlacesProvider } from './PlacesContext';
-// import PlacesList from './PlacesList';
-
-// const App: React.FC = () => {
-//   return (
-//     <SafeAreaView style={{ flex: 1 }}>
-//       <PlacesProvider>
-//         <PlacesList />
-//       </PlacesProvider>
-//     </SafeAreaView>
-//   );
-// };
-
-// export default App;

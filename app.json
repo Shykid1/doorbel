@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "deliverooClone",
-    "slug": "deliverooClone",
+    "name": "doorbel",
+    "slug": "doorbel",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "doorbel",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -14,13 +14,19 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yussif.doorbel"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.yussif.doorbel"
     },
     "web": {
       "bundler": "metro",
@@ -31,12 +37,6 @@
       "expo-router",
       "expo-font",
       [
-        "@rnmapbox/maps",
-        {
-          "RNMapboxMapsVersion": "10.1.28"
-        }
-      ],
-      [
         "expo-location",
         {
           "locationWhenInUsePermission": "Show current location on map."
@@ -46,6 +46,14 @@
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "cb18189d-d5a6-49a0-82a4-8e5bba4b4eaf"
+      }
     }
   }
 }

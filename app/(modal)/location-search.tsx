@@ -146,7 +146,7 @@ const LocationSearch = () => {
           },
         }}
       />
-      <MapView style={styles.map} region={mapRegion} showsUserLocation={true}>
+      <MapView style={styles.map} region={mapRegion}>
         {currentLocation && (
           <Marker
             coordinate={{

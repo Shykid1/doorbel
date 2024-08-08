@@ -12,9 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yussif.doorbel"
@@ -28,8 +26,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ],
-      "package": "com.yussif.doorbel",
-      "android.config.googleMaps.apiKey": "AIzaSyBNCxYyzhLrhW_PxHO5fJpiVtsOkcJl89M"
+      "package": "com.yussif.doorbel"
     },
     "web": {
       "bundler": "metro",

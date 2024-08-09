@@ -13,10 +13,16 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_API_KEY": "AIzaSyBNCxYyzhLrhW_PxHO5fJpiVtsOkcJl89M"
+      }
     },
     "production": {
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_API_KEY": "AIzaSyBNCxYyzhLrhW_PxHO5fJpiVtsOkcJl89M"
+      }
     }
   },
   "submit": {

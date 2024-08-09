@@ -15,7 +15,8 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yussif.doorbel"
+      "bundleIdentifier": "com.yussif.doorbel",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +28,7 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "package": "com.yussif.doorbel",
-      "android.config.googleMaps.apiKey": "AIzaSyBNCxYyzhLrhW_PxHO5fJpiVtsOkcJl89M"
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",
@@ -55,12 +56,6 @@
       "eas": {
         "projectId": "cb18189d-d5a6-49a0-82a4-8e5bba4b4eaf"
       }
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/cb18189d-d5a6-49a0-82a4-8e5bba4b4eaf"
     }
   }
 }
